@@ -23,6 +23,7 @@ fn main() {
 
 fn collect_dirs(path: &Path) -> Vec<PathBuf> {
     let mut dirs = Vec::new();
+    //let pool = ThreadPool::new(4);
 
     let dir_listings = match fs::read_dir(path) {
         Ok(listing) => listing,
