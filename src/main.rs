@@ -72,7 +72,6 @@ fn tree_test() {
 /// 
 fn collect_dirs(path: &Path, shared_tree: Arc<Mutex<TreeModel>>, depth: u32) -> Vec<PathBuf> {
     let mut dirs = Vec::new();
-    let depth = depth + 1;
 
     let dir_listings = match fs::read_dir(path) {
         Ok(listing) => listing,
@@ -81,6 +80,17 @@ fn collect_dirs(path: &Path, shared_tree: Arc<Mutex<TreeModel>>, depth: u32) -> 
             return dirs;
         }
     };
+
+    if depth == 0 {
+        let top_tree_entry = TreeEntry {
+            name: path.file_name().unwrap().to_string_lossy().to_string(),
+            depth: depth,
+            is_dir: path.is_dir(),
+        };
+        shared_tree.lock().unwrap().add_entry(top_tree_entry);
+    }
+
+    let depth = depth + 1;
 
     dir_listings
         .filter_map(|x| {
