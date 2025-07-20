@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Launch",
             "program": "${workspaceFolder}/target/debug/file-stuff",
-            "args": ["--search-string", "iCloud", "--file-path", "/home/hyp/"],
+            "args": ["--search-string", "iCloud", "--file-path", "/home/hyp/testpath"],
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,
             "sourceLanguages": ["rust"]

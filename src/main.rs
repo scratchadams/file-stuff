@@ -88,17 +88,25 @@ fn collect_dirs(path: &Path, shared_tree: Arc<Mutex<TreeModel>>, depth: u32) -> 
         })
         .for_each(|dir| {
             if dir.is_dir() && !dir.is_symlink() {
+                let tree_entry = TreeEntry {
+                    name: dir.file_name().unwrap().to_string_lossy().to_string(),
+                    depth: depth,
+                    is_dir: dir.is_dir(),
+                };
+                shared_tree.lock().unwrap().add_entry(tree_entry);
+                dirs.push(dir.clone());
+
                 dirs.extend(collect_dirs(&dir, Arc::clone(&shared_tree),depth));
+            } else {
+                let tree_entry = TreeEntry {
+                    name: dir.file_name().unwrap().to_string_lossy().to_string(),
+                    depth: depth,
+                    is_dir: dir.is_dir(),
+                };
+                shared_tree.lock().unwrap().add_entry(tree_entry);
+                dirs.push(dir);
             }
 
-            let tree_entry = TreeEntry {
-                name: dir.file_name().unwrap().to_string_lossy().to_string(),
-                depth: depth,
-                is_dir: dir.is_dir(),
-            };
-
-            shared_tree.lock().unwrap().add_entry(tree_entry);
-            dirs.push(dir);
         });
     
     dirs
