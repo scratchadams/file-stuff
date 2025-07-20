@@ -23,7 +23,16 @@ fn main() {
     //let results = search_names(dirs,args.search_string);
 
     //println!("search results: {results:?}");
-    tree_test();
+    let tree = Arc::new(Mutex::new(TreeModel::new()));
+    let tree_handle = TreeModel::start(Arc::clone(&tree));
+
+    let _ = collect_dirs(
+        Path::new(&args.file_path).into(),
+        tree,
+        0
+    );
+
+    tree_handle.join();
 
 }
 
@@ -43,7 +52,7 @@ fn tree_test() {
     };
 
     thread::sleep(Duration::from_secs(1));
-    
+
     tree.lock().unwrap().add_entry(ex1);
     tree.lock().unwrap().add_entry(ex2);
 
@@ -61,9 +70,9 @@ fn tree_test() {
 /// TODO: Add the ability to limit path traversal depth
 /// 
 /// 
-fn collect_dirs(path: &Path) -> Vec<PathBuf> {
+fn collect_dirs(path: &Path, shared_tree: Arc<Mutex<TreeModel>>, depth: u32) -> Vec<PathBuf> {
     let mut dirs = Vec::new();
-    //let pool = ThreadPool::new(4);
+    let depth = depth + 1;
 
     let dir_listings = match fs::read_dir(path) {
         Ok(listing) => listing,
@@ -79,8 +88,16 @@ fn collect_dirs(path: &Path) -> Vec<PathBuf> {
         })
         .for_each(|dir| {
             if dir.is_dir() && !dir.is_symlink() {
-                dirs.extend(collect_dirs(&dir));
+                dirs.extend(collect_dirs(&dir, Arc::clone(&shared_tree),depth));
             }
+
+            let tree_entry = TreeEntry {
+                name: dir.file_name().unwrap().to_string_lossy().to_string(),
+                depth: depth,
+                is_dir: dir.is_dir(),
+            };
+
+            shared_tree.lock().unwrap().add_entry(tree_entry);
             dirs.push(dir);
         });
     
